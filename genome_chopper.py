@@ -7,7 +7,8 @@ from msprime_simulation import msprime_simulate_variants, test_tsinfer
 import time
 
 """
-implémentation de deux algorithmes de détection de point de recombinaison dans un alignement de séquences apparentées
+implémentation de deux algorithmes de détection de point de recombinaison dans un alignement de séquences apparentées et comparaison entre elles et
+tsinfer
 """
 
 
@@ -206,63 +207,63 @@ def detect_events(variants, nb):
 #######################################################################################################################
 
 
-def incompatibility_in_block(partitions):
-    for index, partition in enumerate(partitions):
-        for jindex in range(index + 1, len(partitions)):
-            if internal_incompatibility_2(set(partition), set(partitions[jindex])):
-                return True
-    return False
+# def incompatibility_in_block(partitions):
+#     for index, partition in enumerate(partitions):
+#         for jindex in range(index + 1, len(partitions)):
+#             if internal_incompatibility_2(set(partition), set(partitions[jindex])):
+#                 return True
+#     return False
 
 
-def checked_incompatibilities(list_blocks, variants, nb):
-    count = 0
-    individuals = np.array((range(nb)))
-    for inf, sup in list_blocks:
-        dict_partition = {}
-        for index, variant in enumerate(variants[inf + 1:sup]):
-            partition = tuple(individuals[variant.genotypes == 1])
-            if len(partition) == 1:
-                continue
-            if partition not in dict_partition:
-                dict_partition[partition] = None
-        if incompatibility_in_block(list(dict_partition.keys())):
-            count += 1
-    return count
+# def checked_incompatibilities(list_blocks, variants, nb):
+#     count = 0
+#     individuals = np.array((range(nb)))
+#     for inf, sup in list_blocks:
+#         dict_partition = {}
+#         for index, variant in enumerate(variants[inf + 1:sup]):
+#             partition = tuple(individuals[variant.genotypes == 1])
+#             if len(partition) == 1:
+#                 continue
+#             if partition not in dict_partition:
+#                 dict_partition[partition] = None
+#         if incompatibility_in_block(list(dict_partition.keys())):
+#             count += 1
+#     return count
 
 
-def hierarchie(variants, inf, sup, individuals):
-    hierarchie = {}
-    for variant in variants[inf: sup]:
-        index = tuple(individuals[variant.genotypes == 1])
-        if index not in hierarchie:
-            hierarchie[index] = None
-    return hierarchie
+# def hierarchie(variants, inf, sup, individuals):
+#     hierarchie = {}
+#     for variant in variants[inf: sup]:
+#         index = tuple(individuals[variant.genotypes == 1])
+#         if index not in hierarchie:
+#             hierarchie[index] = None
+#     return hierarchie
 
 
-def compar_hierarchie(hierarchie_1, hierarchie_2):
-    for index in hierarchie_1:
-        if index in hierarchie_2:
-            continue
-        for index_2 in hierarchie_2:
-            if internal_incompatibility_2(set(index), set(index_2)):
-                return True
-    return False
+# def compar_hierarchie(hierarchie_1, hierarchie_2):
+#     for index in hierarchie_1:
+#         if index in hierarchie_2:
+#             continue
+#         for index_2 in hierarchie_2:
+#             if internal_incompatibility_2(set(index), set(index_2)):
+#                 return True
+#     return False
 
 
-def check_blocks(blocks, variants, sample_size):
-    individuals = np.array(range(sample_size))
-    inf, sup = blocks[0]
-    count = 0
-    hierarchie_1 = hierarchie(variants, inf, sup, individuals)
-    for inf, sup in blocks[1:]:
-        hierarchie_2 = hierarchie(variants, inf, sup, individuals)
-        if not compar_hierarchie(hierarchie_1, hierarchie_2):
-            count += 1
-            # print("a")
-            # print(hierarchie_1.keys())
-            # print(hierarchie_2.keys())
-        hierarchie_1 = hierarchie_2
-    print(count)
+# def check_blocks(blocks, variants, sample_size):
+#     individuals = np.array(range(sample_size))
+#     inf, sup = blocks[0]
+#     count = 0
+#     hierarchie_1 = hierarchie(variants, inf, sup, individuals)
+#     for inf, sup in blocks[1:]:
+#         hierarchie_2 = hierarchie(variants, inf, sup, individuals)
+#         if not compar_hierarchie(hierarchie_1, hierarchie_2):
+#             count += 1
+#             # print("a")
+#             # print(hierarchie_1.keys())
+#             # print(hierarchie_2.keys())
+#         hierarchie_1 = hierarchie_2
+#     print(count)
 
 
 ########################################################################################################################
@@ -334,6 +335,10 @@ def th_events_ek(obs_events, variants, params):
 
 
 def data_simulation(params):
+    """
+    params: paramètres du sénario démographique
+    simule un alignemùent msprime et teste les différentes méthodes de détections des point de recombinaisons
+    """
     closest_dist, result, list_time = [], [], []
     thresolds = [0]
     ts, edges, events, variants = msprime_simulate_variants(params)
